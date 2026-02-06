@@ -14,7 +14,7 @@ function yada_wiki_shortcode( $atts ) {
 		'show' => '', 
 		'anchor' => '',
 	), $atts ) ); 
-	
+    
 	$link = sanitize_text_field($link);
 	$show = sanitize_text_field($show);
 	$anchor = sanitize_text_field($anchor);
@@ -42,7 +42,23 @@ function get_yada_wiki_link( $wiki_page, $link_text, $anchor_jump ){
 	    )
 	);
 	if($target) { $target=$target[0]; } 
-	
+	// Search again in case the page title has em tags around it by removing them for the search
+	if(!$target) { 
+		$target = get_posts(
+			array(
+				'post_type'              => 'yada_wiki',
+				'title'                  => sanitize_text_field($wiki_page),
+				'post_status'            => 'all',
+				'numberposts'            => 1,
+				'update_post_term_cache' => false,
+				'update_post_meta_cache' => false,           
+				'orderby'                => 'post_date ID',
+				'order'                  => 'ASC',
+			)
+		);
+		if($target) { $target=$target[0]; } 
+	}
+
 	if($anchor_jump) {
 		$firstchar = substr($anchor_jump,0,1);
 		if ($firstchar != '#') {

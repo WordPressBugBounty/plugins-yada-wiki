@@ -16,6 +16,7 @@ class yadawiki_toc_widget extends WP_Widget {
 	function form( $instance ) {
 		if( $instance) {
 			$title 		= esc_attr($instance['title']);
+			$title 		= sanitize_text_field($instance['title']);
 			$category 	= $instance['category'];
 			$order 		= $instance['order'];
 		} else {
@@ -212,6 +213,7 @@ class yadawiki_activity_widget extends WP_Widget {
 	function form( $instance ) {
 		if( $instance) {
 			$title 		= esc_attr($instance['title']);
+			$title 		= sanitize_text_field($instance['title']);
 			$num_posts 	= $instance['num_posts'];
 			$show_date 	= isset( $instance['show_date'] ) ? (bool) $instance['show_date'] : false;
 		} else {

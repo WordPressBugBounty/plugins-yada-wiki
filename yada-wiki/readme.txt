@@ -1,16 +1,18 @@
 === Yada Wiki ===
 Contributors: dmccan
-Tags: wiki, shortcode, internal links, page links, faq, knowledge base
+Tags: wiki, shortcode, page links, faq, knowledge base
 Requires at least: 4.1
-Tested up to: 6.5
-Stable tag: 3.5
+Tested up to: 6.9
+Stable tag: 3.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Yada Wiki is a simple wiki for your WordPress site.
 
 == Description ==
-Yada Wiki provides a wiki post type, custom tags and categories, an index, and a table of contents option.  The plugin allows you to link your wiki pages together using the wiki page titles.  
+Yada Wiki provides a wiki post type, custom tags and categories, an index, and a table of contents option.  The plugin allows you to link your wiki pages together using the wiki page titles. 
+
+Note: As of Yada Wiki 3.6, for current users who have been manually adding HTML tags or special characters to their shortcodes, for security reasons these must be filtered on save. An exception was added for the EM tag because I saw support tickets where users said they were using this tag.  If you have been manually editing the shortcodes then you may want to test before installing version 3.6.  
 
 There are two easy to use shortcode buttons available on the editor toolbar.  Rather than try to remember the shortcodes and their values, it is recommended that you use these buttons to generate the shortcodes for you.
 
@@ -171,6 +173,10 @@ As of Yada Wiki version 3.1, the Gutenberg editor is disabled on Wiki pages by d
 The user @JulianSMoore has been very helpful in suggesting improvements and reviewing changes. Thanks to the user @simplyletgo who contributed the recent wiki post widget.  
 
 == Changelog ==
+
+= 3.6 =
+* Sanitized shortcode inputs on save. Allowed em tags. 
+* Tested for WordPress 6.9 compatibility.
 
 = 3.5 = 
 * Fixed shortcode index options which were not working correctly.

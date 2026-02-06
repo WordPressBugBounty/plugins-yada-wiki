@@ -3,7 +3,7 @@
  * Plugin Name: Yada Wiki
  * Plugin URI:  https://www.webtng.com/yada-wiki-documentation
  * Description: This plugin provides a simple wiki for your WordPress site.
- * Version:     3.5
+ * Version:     3.6
  * Author:      David McCan
  * Author URI:  https://www.webtng.com
  * Text Domain: yada_wiki_domain
@@ -20,7 +20,7 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * @package   YadaWiki
- * @version   3.5
+ * @version   3.6
  * @author    David McCan <dcmccan@gmail.com>
  * @copyright Copyright (c) 2015-2024, David McCan
  * @link      https://www.webtng.com/yada-wiki-documentation
@@ -207,13 +207,13 @@ final class YadaWikiPlugin {
 		// Internationalize the text strings used.
 		add_action( 'plugins_loaded', array( $this, 'i18n' ), 2 );
 		add_action( 'init', 'yadawiki_load_settings' );
+		add_shortcode('yadawiki', 'yada_wiki_shortcode');
+		add_shortcode('yadawikitoc', 'yada_wiki_toc_shortcode');
+		add_shortcode('yadawiki-index', 'yada_wiki_index_shortcode');
 		
 		// public facing
 		if ( ! is_admin() ) {
 			add_action( 'wp_enqueue_scripts', 'yada_wiki_scripts' );
-			add_shortcode('yadawiki', 'yada_wiki_shortcode');
-			add_shortcode('yadawikitoc', 'yada_wiki_toc_shortcode');
-			add_shortcode('yadawiki-index', 'yada_wiki_index_shortcode');
 		}
 		
 		// admin facing
@@ -223,6 +223,7 @@ final class YadaWikiPlugin {
 			add_action( 'wp_ajax_yada_wiki_suggest', 'yada_wiki_suggest_callback' );
 			add_action( 'admin_menu', 'yada_wiki_add_admin_menu' );
 			add_action( 'admin_init', 'yada_wiki_settings_init' );
+			add_action('save_post', 'yada_wiki_process_shortcodes_on_save', 10, 3);
 			
 			// Handle Gutenberg
 			if ( version_compare( $GLOBALS['wp_version'], '5.0-beta', '>' ) ) {

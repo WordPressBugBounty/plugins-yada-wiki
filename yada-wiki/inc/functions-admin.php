@@ -162,7 +162,136 @@ if ( is_admin() ) {
         }
         wp_die();
     }
- 
+    
+    /******************************
+    * Sanitize shortcode input on save
+    *******************************/
+	function yada_wiki_process_shortcodes_on_save($post_id, $post, $update) {
+	
+		// Only run on standard post saves, not autosave or revision
+		if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
+		if ( wp_is_post_revision($post_id) ) return;
+		
+		// Do we need to filter the saving of posts and pages also?
+		$options = get_option( 'yada_wiki_settings' );
+		if ( isset($options['yada_wiki_checkbox_editor_buttons_setting']) ) {
+			$allowShortcodeOnPostsAndPages = true;
+		}
+		else {
+			$allowShortcodeOnPostsAndPages = false;
+		}
+		
+		if ( $allowShortcodeOnPostsAndPages === true ) {
+			if ( $post->post_type !== 'yada_wiki' && $post->post_type !== 'post'  && $post->post_type !== 'page' ) return;
+		} else {
+			if ( $post->post_type !== 'yada_wiki') return;
+		}	
+	
+		// Prevent infinite loop
+		remove_action('save_post', 'yada_wiki_process_shortcodes_on_save', 10);
+	
+		$content = $post->post_content;
+		$content = html_entity_decode($content, ENT_QUOTES | ENT_HTML5);
+		$regex = get_shortcode_regex();
+		$has_changes = false;
+		$allowed_html = array(
+			'em' => array(), // Allow <em> with no attributes
+		);						
+	
+		if (preg_match_all('/' . $regex . '/s', $content, $matches, PREG_SET_ORDER)) {
+			foreach ($matches as $match) {
+				if (isset($match[2]) && $match[2] === 'yadawiki') {
+					if (isset($match[3])) {
+						$atts = shortcode_parse_atts($match[3]);
+						// Proceed to process $atts
+					} else {
+						$atts = array();
+						// Proceed, but there will be no matches
+					}
+					
+					// Sanitize attributes
+					$atts['link'] = isset($atts['link']) ? wp_kses($atts['link'], $allowed_html) : '';		
+					$atts['show']   = isset($atts['show']) ? wp_kses($atts['show'], $allowed_html) : '';
+					$atts['anchor'] = isset($atts['anchor']) ? sanitize_text_field($atts['anchor']) : '';
+	
+					// Rebuild the sanitized shortcode, always with double quotes for safety
+					$sanitized = '[yadawiki';
+					foreach ($atts as $key => $value) {
+						if ($value !== '') {
+							$sanitized .= " {$key}=\"" . esc_attr($value) . "\"";
+						}
+					}
+					$sanitized .= ']';
+	
+					// Replace the original shortcode with sanitized version
+					$content = str_replace($match[0], $sanitized, $content);
+					$has_changes = true;
+				} elseif (isset($match[2]) && $match[2] === 'yadawikitoc') {
+					if (isset($match[3])) {
+						$atts = shortcode_parse_atts($match[3]);
+						// Proceed to process $atts
+					} else {
+						$atts = array();
+						// Proceed, but there will be no matches
+					}
+	
+					// Sanitize attributes
+					$atts['show_toc'] = isset($atts['show_toc']) ? sanitize_text_field($atts['show_toc']) : '';
+					$atts['category']   = isset($atts['category']) ? sanitize_text_field($atts['category']) : '';
+					$atts['order'] = isset($atts['order']) ? sanitize_text_field($atts['order']) : '';
+	
+					// Rebuild the sanitized shortcode, always with double quotes for safety
+					$sanitized = '[yadawikitoc';
+					foreach ($atts as $key => $value) {
+						if ($value !== '') {
+							$sanitized .= " {$key}=\"" . esc_attr($value) . "\"";
+						}
+					}
+					$sanitized .= ']';
+	
+					// Replace the original shortcode with sanitized version
+					$content = str_replace($match[0], $sanitized, $content);
+					$has_changes = true;
+				}  elseif (isset($match[2]) && $match[2] === 'yadawiki-index') {
+					if (isset($match[3])) {
+						$atts = shortcode_parse_atts($match[3]);
+						// Proceed to process $atts
+					} else {
+						$atts = array();
+						// Proceed, but there will be no matches
+					}
+	
+					// Sanitize attributes
+					$atts['type'] = isset($atts['type']) ? sanitize_text_field($atts['type']) : '';
+					$atts['columns'] = isset($atts['columns']) ? sanitize_text_field($atts['columns']) : '';
+	
+					// Rebuild the sanitized shortcode, always with double quotes for safety
+					$sanitized = '[yadawiki-index';
+					foreach ($atts as $key => $value) {
+						if ($value !== '') {
+							$sanitized .= " {$key}=\"" . esc_attr($value) . "\"";
+						}
+					}
+					$sanitized .= ']';
+	
+					// Replace the original shortcode with sanitized version
+					$content = str_replace($match[0], $sanitized, $content);
+					$has_changes = true;
+				}
+			}
+		}
+	
+		if ($has_changes) {
+			wp_update_post([
+				'ID' => $post_id,
+				'post_content' => $content
+			]);
+		}
+	
+		// Re-add the hook
+		add_action('save_post', 'yada_wiki_process_shortcodes_on_save', 10, 3);
+	}
+
     /********************************************************
     * Funciton from Ohad Raz - https://en.bainternet.info/
     ********************************************************/
